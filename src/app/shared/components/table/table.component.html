@@ -1,0 +1,550 @@
+<div class="">
+  @if (showHeaderButtons) {
+  <div
+    class="flex flex-wrap w-full gap-4 justify-content-between align-items-center mb-4"
+  >
+    @if (showHeaderAddUpload) {
+    <div class="flex flex-column md:flex-row w-full md:w-auto gap-2">
+      <app-custom-button
+        styleClass="text-sm lg:text-base w-full"
+        [label]="addBtnLabel"
+        (onClick)="onClickAdd()"
+        icon="pi pi-plus text-xs"
+      />
+      <app-custom-button
+        styleClass="text-sm lg:text-base w-full"
+        [label]="'Upload CSV File'"
+        [variant]="'outlined'"
+        (onClick)="onClickUpload()"
+        icon="pi pi-plus text-xs"
+      />
+    </div>
+    } @else {
+    <div class="flex gap-2"></div>
+    }
+    <app-companies-redirection />
+  </div>
+  } @if (chartView) { @if (loading) {
+  <p-skeleton styleClass="h-10rem" />
+  } @else {
+  <div
+    class="card w-full bg-light-grey p-4 overflow-x-auto relative border-round-lg"
+  >
+    @if (chartData) {
+    <app-org-chart [data]="chartData"></app-org-chart>
+    } @else {
+    <div class="flex flex-column justify-content-center align-items-center">
+      <img
+        src="/assets/icons/no-data.png"
+        alt="no-data"
+        class="mx-auto block p-8 w-5"
+      />
+      <span class="text-sm">No Data Available</span>
+    </div>
+    }
+  </div>
+  } } @else {
+  <p-table
+    #dt
+    [columns]="columns"
+    [value]="data.list"
+    [lazy]="true"
+    [customSort]="true"
+    (onSort)="onSort($event)"
+    [rowExpandMode]="'multiple'"
+    [groupRowsBy]="'children'"
+    tableStyleClass="border-1 border-200 border-round-lg overflow-hidden"
+    styleClass="bg-light-grey"
+  >
+    <ng-template #header let-columns>
+      <tr>
+        @for (col of columns; track $index;) {
+        <th
+          class="bg-light-purple"
+          [pSortableColumn]="col.field"
+          [ngStyle]="{ width: col.width ? col.width : '' }"
+        >
+          <div
+            class="flex w-full gap-1 justify-content-start align-items-center"
+          >
+            <span class="text-sm">{{ col?.name }}</span>
+            @if (col.sortable) {
+            <p-sortIcon [field]="col.field" />
+            } @if (col.filter) { @if (col.filterType === 'dropdown') {
+            <p-columnFilter
+              #filter
+              [field]="col.field"
+              matchMode="equals"
+              display="menu"
+              class="filter"
+              [ngClass]="{ active: selectedFilters[col.field] }"
+              (onShow)="getDropDownOptions(col.field, col?.capitalize)"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+              [showApplyButton]="false"
+              [showClearButton]="false"
+            >
+              <ng-template pTemplate="filter">
+                <p-dropdown
+                  [placeholder]="'Select ' + col.name"
+                  styleClass="w-full"
+                  [(ngModel)]="selectedFilters[col.field]"
+                  [options]="this.dropdownOptions[col.field]"
+                  [optionLabel]="col.optionLabel ?? 'name'"
+                  [optionValue]="col.optionValue ?? 'value'"
+                ></p-dropdown>
+
+                <div class="flex justify-content-between mt-2">
+                  <app-custom-button
+                    label="Cancel"
+                    variant="outlined"
+                    size="small"
+                    (onClick)="onCancelFilter(filter, col.field)"
+                  />
+                  <app-custom-button
+                    label="Apply"
+                    size="small"
+                    (onClick)="onFilter(filter)"
+                  />
+                </div>
+              </ng-template>
+            </p-columnFilter>
+            } @else if (col.filterType === 'multiSelect') {
+            <p-columnFilter
+              #filter
+              [field]="col.field"
+              matchMode="equals"
+              display="menu"
+              class="filter"
+              [ngClass]="{ active: selectedFilters[col.field] }"
+              (onShow)="getDropDownOptions(col.field)"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+              [showApplyButton]="false"
+              [showClearButton]="false"
+            >
+              <ng-template pTemplate="filter">
+                <p-multiselect
+                  [placeholder]="'Select ' + col.name"
+                  styleClass="w-full"
+                  tooltipPosition="left"
+                  [optionLabel]="col.optionLabel"
+                  [optionValue]="col.optionValue"
+                  [(ngModel)]="selectedFilters[col.field]"
+                  [options]="this.dropdownOptions[col.field]"
+                  panelStyleClass="w-3"
+                >
+                  <ng-template #footer>
+                    <div class="flex justify-content-between py-2 px-3">
+                      <app-custom-button
+                        label="Cancel"
+                        variant="outlined"
+                        size="small"
+                        (onClick)="onCancelFilter(filter, col.field)"
+                      />
+                      <app-custom-button
+                        label="Apply"
+                        size="small"
+                        (onClick)="onFilter(filter)"
+                      />
+                    </div>
+                  </ng-template>
+                </p-multiselect>
+              </ng-template>
+            </p-columnFilter>
+            } @else if (col.filterType === 'date') {
+            <p-columnFilter
+              #filter
+              [field]="col.field"
+              matchMode="equals"
+              display="menu"
+              class="filter"
+              [ngClass]="{ active: dateFilterRange[col.field] }"
+              [showMatchModes]="false"
+              [showOperator]="false"
+              [showAddButton]="false"
+              [showApplyButton]="false"
+              [showClearButton]="false"
+            >
+              <ng-template pTemplate="filter">
+                <p-datepicker
+                  [(ngModel)]="dateFilterRange[col.field]"
+                  [showOnFocus]="false"
+                  [readonlyInput]="true"
+                  (ngModelChange)="dateFilter($event, col.field)"
+                  dateFormat="yy-mm-dd"
+                  [showIcon]="true"
+                  selectionMode="range"
+                  placeholder="Select Date"
+                  styleClass="w-full"
+                ></p-datepicker>
+
+                <div class="flex justify-content-between mt-2">
+                  <app-custom-button
+                    label="Cancel"
+                    variant="outlined"
+                    size="small"
+                    (onClick)="onCancelFilter(filter, col.field)"
+                  />
+                  <app-custom-button
+                    label="Apply"
+                    size="small"
+                    (onClick)="onFilter(filter)"
+                  />
+                </div>
+              </ng-template>
+            </p-columnFilter>
+            } @else {
+            <p-columnFilter
+              #filter
+              type="text"
+              [field]="col.field"
+              display="menu"
+              [showMatchModes]="false"
+              matchMode="contains"
+              [showOperator]="false"
+              [showAddButton]="false"
+              class="filter"
+              [ngClass]="{ active: selectedFilters[col.field] }"
+              [showApplyButton]="false"
+              [showClearButton]="false"
+            >
+              <ng-template pTemplate="filter">
+                <app-custom-input
+                  [placeholder]="col.filterPlaceHolder ?? 'Search ' + col.name"
+                  [(ngModel)]="selectedFilters[col.field]"
+                ></app-custom-input>
+                <div class="flex justify-content-between mt-2">
+                  <app-custom-button
+                    label="Cancel"
+                    variant="outlined"
+                    size="small"
+                    (onClick)="onCancelFilter(filter, col.field)"
+                  />
+                  <app-custom-button
+                    label="Apply"
+                    size="small"
+                    (onClick)="onFilter(filter)"
+                  />
+                </div>
+              </ng-template>
+            </p-columnFilter>
+            } }
+          </div>
+        </th>
+        }
+      </tr>
+    </ng-template>
+    <ng-template
+      #body
+      let-rowData
+      let-columns="columns"
+      let-expanded="expanded"
+      let-editing="editing"
+    >
+      @if(loading) {
+      <tr>
+        @for (col of columns; track $index;) {
+        <td>
+          <p-skeleton />
+        </td>
+        }
+      </tr>
+      } @else {
+      <tr style="height: 91px">
+        @for (col of columns; track $index;) {
+        <td>
+          <div class="flex flex-column">
+            <div class="flex align-items-center">
+              @if (col.editable) {
+              <td
+                [pEditableColumn]="rowData[col.field]"
+                [pEditableColumnField]="col.field"
+              >
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <app-editable-cell
+                      [placeholder]="col.name"
+                      [(ngModel)]="rowData[col.field]"
+                      [type]="col.type"
+                      [options]="col.options"
+                      (ngModelChange)="onCellEdit(rowData, col.field, $event)"
+                    />
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    @if (rowData[col.field]) { @if (col.type === 'date' &&
+                    rowData[col.field]) {
+                    {{ moment(rowData[col.field]).format("DD/MM/YYYY") }}
+                    } @else if (Array.isArray(rowData[col.field])) {
+                    <span
+                      [innerHTML]="
+                        handleArrayValues(
+                          rowData[col.field],
+                          col.arrayNameField
+                            ? col.arrayNameField
+                            : 'companyName'
+                        )
+                      "
+                    ></span>
+                    } @else if (col.type === 'doc' && rowData[col.field]) {
+                    <span
+                      class="flex gap-2 cursor-pointer"
+                      (click)="openFileInNewTab(rowData[col.field].accessUrl)"
+                    >
+                      <img src="assets/icons/document-text.svg" alt="" />
+                      {{ rowData[col.field].name }}
+                    </span>
+                    } @else {
+                    {{ rowData[col.field] }}
+                    } } @else { <span>-</span> }
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              } @else { @if ($index === 0 && rowData.isInvalid) {
+              <span
+                class="text-red-600 text-2xl flex align-items-center justify-content-center"
+                style="width: 20px; line-height: 0"
+                >•</span
+              >
+              } @if(Array.isArray(rowData[col.field])) {
+              <span
+                [innerHTML]="
+                  handleArrayValues(
+                    rowData[col.field],
+                    col.arrayNameField ? col.arrayNameField : 'companyName'
+                  )
+                "
+              ></span>
+              } @else if (col.type === 'checkbox') {
+              <p-toggleswitch
+                [(ngModel)]="rowData[col.field]"
+                (onChange)="onToggleSwitch($event, rowData._id)"
+              />
+              } @else if (col.type === 'date' && rowData[col.field]) {
+              {{ moment(rowData[col.field]).format("DD/MM/YYYY") }}
+              } @else if (col.type === 'doc') {
+              <span
+                class="flex gap-2 cursor-pointer"
+                (click)="openFileInNewTab(rowData[col.field].accessUrl)"
+              >
+                @if ( rowData[col.field]) {
+                <img src="assets/icons/document-text.svg" alt="" />
+                {{ rowData[col.field].name }}
+                }
+              </span>
+              } @else { @if (col.expandable && rowData.children.length) {
+              <p-button
+                type="button"
+                pRipple
+                [pRowToggler]="rowData"
+                [text]="true"
+                [rounded]="true"
+                [plain]="true"
+                [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                (click)="toggleRowExpansion(rowData)"
+              />
+              }
+              {{
+                col?.capitalize
+                  ? camelCaseToHeading(getNestedValue(rowData, col.field))
+                  : getNestedValue(rowData, col.field)
+              }}
+              } @if (col.field === 'actions') {
+              <span class="flex gap-2">
+                <i
+                  class="pi pi-pencil cursor-pointer"
+                  (click)="onClickEdit(rowData._id)"
+                ></i>
+                <i
+                  class="pi pi-trash cursor-pointer"
+                  (click)="onClickDelete($event, rowData._id)"
+                ></i>
+              </span>
+              } }
+            </div>
+
+            <!-- Error message for this column -->
+            @if (rowData.errors && rowData.errors[col.field]) {
+            <small class="text-red-500 text-xs mt-1">{{
+              rowData.errors[col.field]
+            }}</small>
+            }
+          </div>
+        </td>
+        }
+      </tr>
+      }
+    </ng-template>
+    <ng-template #expandedrow let-rowData>
+      @for (child of rowData.children; track $index;) { @if(loading) {
+      <tr>
+        @for (col of columns; track $index;) {
+        <td>
+          <p-skeleton />
+        </td>
+        }
+      </tr>
+      } @else {
+      <tr>
+        @for (col of columns; track $index; let idx = $index) {
+        <td [ngClass]="{ 'pl-5': idx === 0 }">
+          <div class="flex align-items-center">
+            @if(Array.isArray(child[col.field])) {
+            <span
+              [innerHTML]="
+                handleArrayValues(
+                  child[col.field],
+                  col.arrayNameField ? col.arrayNameField : 'companyName'
+                )
+              "
+            ></span>
+            } @else if (col.type === 'checkbox') {
+            <p-toggleswitch
+              [(ngModel)]="child[col.field]"
+              (onChange)="onToggleSwitch($event, child._id)"
+            />
+            } @else if (col.type === 'date' && child[col.field]) {
+            {{ moment(child[col.field]).format("DD/MM/YYYY") }}
+            } @else { @if (col.expandable && child.children &&
+            child.children.length) {
+            <p-button
+              type="button"
+              pRipple
+              [pRowToggler]="child"
+              [text]="true"
+              [rounded]="true"
+              [plain]="true"
+              [icon]="
+                expandedRows[child._id]
+                  ? 'pi pi-chevron-down'
+                  : 'pi pi-chevron-right'
+              "
+              (click)="toggleRowExpansion(child)"
+            />
+            } @else if (col.expandable && idx === 0) {
+            <!-- Add spacer for children without their own children -->
+            <span class="pl-4"></span>
+            }
+            <span
+              [ngClass]="{
+                'text-primary font-semibold cursor-pointer': col.type === 'link'
+              }"
+              (click)="col.onClick ? col.onClick(child._id) : null"
+            >
+              {{
+                col.capitalize
+                  ? camelCaseToHeading(getNestedValue(child, col.field))
+                  : getNestedValue(child, col.field)
+              }}
+            </span>
+            } @if (col.field === 'actions') {
+            <span class="flex gap-2">
+              <i
+                class="pi pi-pencil cursor-pointer"
+                (click)="onClickEdit(child._id)"
+              ></i>
+              <i
+                class="pi pi-trash cursor-pointer"
+                (click)="onClickDelete($event, child._id)"
+              ></i>
+            </span>
+            }
+          </div>
+        </td>
+        }
+      </tr>
+      <!-- Nested children expansion -->
+      @if (child.children && child.children.length && expandedRows[child._id]) {
+      @for (nestedChild of child.children; track $index;) {
+      <tr>
+        @for (col of columns; track $index; let idx = $index) {
+        <td [ngClass]="{ 'pl-8': idx === 0 }">
+          <div class="flex align-items-center">
+            @if(Array.isArray(nestedChild[col.field])) {
+            <span
+              [innerHTML]="
+                handleArrayValues(
+                  nestedChild[col.field],
+                  col.arrayNameField ? col.arrayNameField : 'companyName'
+                )
+              "
+            ></span>
+            } @else if (col.type === 'checkbox') {
+            <p-toggleswitch
+              [(ngModel)]="nestedChild[col.field]"
+              (onChange)="onToggleSwitch($event, nestedChild._id)"
+            />
+            } @else if (col.type === 'date' && nestedChild[col.field]) {
+            {{ moment(nestedChild[col.field]).format("DD/MM/YYYY") }}
+            } @else {
+            <span
+              [ngClass]="{
+                'text-primary font-semibold cursor-pointer': col.type === 'link'
+              }"
+              (click)="col.onClick ? col.onClick(nestedChild._id) : null"
+            >
+              {{
+                col.capitalize
+                  ? camelCaseToHeading(getNestedValue(nestedChild, col.field))
+                  : getNestedValue(nestedChild, col.field)
+              }}
+            </span>
+            } @if (col.field === 'actions') {
+            <span class="flex gap-2">
+              <i
+                class="pi pi-pencil cursor-pointer"
+                (click)="onClickEdit(nestedChild._id)"
+              ></i>
+              <i
+                class="pi pi-trash cursor-pointer"
+                (click)="onClickDelete($event, nestedChild._id)"
+              ></i>
+            </span>
+            }
+          </div>
+        </td>
+        }
+      </tr>
+      } } } }
+    </ng-template>
+    <ng-template #emptymessage>
+      @if(loading) { @for (item of Array(5); track $index) {
+      <tr>
+        @for (col of columns; track $index;) {
+        <td>
+          <p-skeleton />
+        </td>
+        }
+      </tr>
+      } } @else {
+      <tr>
+        <td [attr.colspan]="columns.length" class="text-center">
+          <img
+            src=" /assets/icons/no-data.png"
+            alt="no-data"
+            class="mx-auto block p-8 w-5"
+          />
+          <span class="text-sm">No Data Available</span>
+        </td>
+      </tr>
+      }
+    </ng-template>
+  </p-table>
+  @if (data?.pagination?.total > queryParams.limit) {
+  <div class="card mt-5">
+    <div class="flex align-items-center justify-content-center">
+      <div class="flex-1">
+        <p-paginator
+          styleClass="paginator"
+          [first]="currentPage * queryParams.limit"
+          [rows]="queryParams.limit"
+          [totalRecords]="data?.pagination?.total"
+          (onPageChange)="onPageChange($event)"
+        />
+      </div>
+    </div>
+  </div>
+  } }
+</div>

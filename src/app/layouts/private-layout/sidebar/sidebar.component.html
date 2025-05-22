@@ -1,0 +1,183 @@
+<!-- @if(user()) { -->
+<div class="sidebar" [ngClass]="{ collapsed: isCollapsed }">
+  <div class="toggle-btn cursor-pointer" (click)="toggleSidebar()">
+    <i
+      class="pi"
+      [ngClass]="isCollapsed ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"
+    ></i>
+  </div>
+  <div class="sidebar-container flex flex-column h-full">
+    <div
+      class="flex bg-primary py-3 shrink-0 sidebar-header"
+      [ngClass]="isCollapsed ? 'px-3' : 'px-4 '"
+    >
+      @if (user()?.companyLogo) {
+      <div class="relative avatar-profile">
+        <p-avatar
+          [image]="user()?.companyLogo"
+          class="mr-2 w-full"
+          size="large"
+        />
+      </div>
+      }
+    </div>
+    <div class="overflow-auto">
+      <ul class="list-none py-3" [ngClass]="isCollapsed ? 'px-3' : 'px-4 '">
+        <li
+          *ngFor="let item of menuItems; let i = index"
+          [ngClass]="{
+            'bg-primary border-round-lg submenu-show':
+              item.isActive && item.subItems
+          }"
+        >
+          <a
+            pRipple
+            [routerLink]="
+              item.route === 'settings' &&
+              this.currentRoute.includes('settings')
+                ? this.currentRoute
+                : item.route
+            "
+            [ngClass]="{
+              'mb-0 border-noround-bottom':
+                item.subItems && item.isSubmenuOpened,
+              'mb-3': !item.subItems,
+              'justify-content-center': isCollapsed
+            }"
+            (click)="toggleSubmenu(item)"
+            class="flex gap-3 no-underline border-round-lg text-black-alpha-90 align-items-center cursor-pointer p-2"
+            #rla="routerLinkActive"
+            routerLinkActive="text-blue-600 bg-primary border-round-lg text-white"
+            [routerLinkActiveOptions]="{ exact: false }"
+          >
+            <img [src]="rla.isActive ? item.activeIcon : item.icon" alt="" />
+            <span
+              class="text-md font-medium"
+              [ngClass]="isCollapsed ? 'label-hidden' : ''"
+              >{{ item.label }}</span
+            >
+            @if (!isCollapsed) {
+            <i
+              *ngIf="item.subItems"
+              class="ml-auto pi"
+              [ngClass]="
+                item.isSubmenuOpened ? 'pi-chevron-up' : 'pi-chevron-down'
+              "
+            ></i>
+            }
+          </a>
+          <ul
+            *ngIf="item.isSubmenuOpened"
+            class="list-none p-2 bg-primary border-round-bottom-lg"
+          >
+            <li *ngFor="let subItem of item.subItems">
+              @if (subItem.roles) { @if(subItem.roles.includes(user()?.role)) {
+              <a
+                pRipple
+                [routerLink]="subItem.route"
+                class="flex items-center border-round-lg cursor-pointer p-2 text-sm duration-150 no-underline"
+                #srla="routerLinkActive"
+                routerLinkActive="bg-white text-black-alpha-90"
+                [ngClass]="{
+                  'bg-white text-black-alpha-90': srla.isActive,
+                  'text-white': !srla.isActive
+                }"
+                [routerLinkActiveOptions]="{ exact: false }"
+              >
+                <img
+                  [src]="srla.isActive ? subItem.activeIcon : subItem.icon"
+                  alt=""
+                  class="mr-2"
+                />
+                <span
+                  class="font-medium"
+                  [ngClass]="{ 'label-hidden': isCollapsed }"
+                  >{{ subItem.label }}</span
+                >
+              </a>
+              } } @else {
+              <a
+                pRipple
+                [routerLink]="subItem.route"
+                class="flex items-center border-round-lg cursor-pointer p-2 text-sm duration-150 no-underline"
+                #srla="routerLinkActive"
+                routerLinkActive="bg-white text-black-alpha-90"
+                [ngClass]="{
+                  'bg-white text-black-alpha-90': srla.isActive,
+                  'text-white': !srla.isActive
+                }"
+                [routerLinkActiveOptions]="{ exact: false }"
+              >
+                <img
+                  [src]="srla.isActive ? subItem.activeIcon : subItem.icon"
+                  alt=""
+                  class="mr-2"
+                />
+                <span
+                  class="font-medium"
+                  [ngClass]="{ 'label-hidden': isCollapsed }"
+                  >{{ subItem.label }}</span
+                >
+              </a>
+              }
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="mt-auto flex flex-column align-items-center">
+      <a
+        pRipple
+        class="flex justify-content-center align-items-center cursor-pointer p-3 gap-2 w-full"
+        (click)="logout($event)"
+      >
+        <img src="/assets/icons/black/logout.svg" alt="" />
+        <span class="font-bold" [ngClass]="isCollapsed ? 'hidden' : 'block'"
+          >Logout</span
+        >
+      </a>
+      <div
+        class="footer-sidebar flex-column justify-content-center gap-4 mt-5"
+        [ngClass]="isCollapsed ? 'hidden' : 'flex'"
+      >
+        <small class="text-center">Version: 1.0</small>
+        <p class="text-center text-sm m-0">
+          Copyright© 2024 NUMBERDOX All Rights Reserved
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- } -->
+
+<p-confirmdialog
+  styleClass="border-none border-round-lg overflow-hidden  w-11 sm:w-6 md:w-5 lg:w-4"
+  [draggable]="false"
+>
+  <ng-template #headless let-onAccept="onAccept" let-onReject="onReject">
+    <div class="flex p-3 bg-primary align-items-center gap-2">
+      <!-- <i class="pi pi-sign-out text-white text-xl"></i> -->
+      <img src="/assets/icons/white/logout.svg" alt="" />
+      <span class="text-white text-xl font-semibold">Logout</span>
+    </div>
+    <div class="p-3">
+      <span class="flex text-lg font-semibold mb-4 align-items-center"
+        >Are you sure you want to Logout?</span
+      >
+      <div class="flex justify-content-end gap-3">
+        <app-custom-button
+          label="Logout"
+          styleClass="px-5"
+          [loading]="loading"
+          (onClick)="onAccept()"
+        />
+        <app-custom-button
+          label="Cancel"
+          severity="secondary"
+          styleClass="px-4"
+          (onClick)="onReject()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-confirmdialog>

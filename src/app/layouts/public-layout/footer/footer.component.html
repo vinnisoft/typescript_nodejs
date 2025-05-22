@@ -1,0 +1,40 @@
+<div class="container h-full text-400">
+    <div class="grid py-4">
+        <div class="col-12 md:col-4 lg:col-3">
+            <img src="assets/icons/logo-white.png" alt="" width="240" height="29">
+            <div>
+                <p class="text-sm font-light">
+                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
+                    industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type
+                    and scrambled it to make a type specimen book. It has survived not only five centuries.
+                </p>
+            </div>
+        </div>
+        <div class="lg:col-offset-1 md:col-offset-4 col-12 md:col-4 lg:col-2 text-base">
+            <p class="text-white">Company</p>
+            @for (link of companyLinks; track $index) {
+            <p class="cursor-pointer" [routerLink]="link.path || '/home'" routerLinkActive="text-white"
+            [routerLinkActiveOptions]="{ exact: true }" [queryParams]="link?.queryParams"
+               >{{link.label}}</p>
+            }
+        </div>
+        <div class="lg:col-offset-1 col-12 md:col-4 lg:col-2 text-base">
+            <p class="text-white">Support</p>
+            @for (link of supportLinks; track $index) {
+            <p class="cursor-pointer" [routerLink]="link.path" routerLinkActive="text-white"
+                [routerLinkActiveOptions]="routerLinkActiveOptions">{{link.label}}</p>
+            }
+        </div>
+        <div class="lg:col-offset-1 md:col-offset-4 col-12 md:col-4 lg:col-2">
+            <p class="text-white">Follow Us</p>
+            <div class="flex gap-2">
+                <img src="assets/icons/linkedIn.png" alt="" width="40" class="mr-2 cursor-pointer">
+                <img src="assets/icons/insta.png" alt="" width="40" class="cursor-pointer">
+            </div>
+        </div>
+    </div>
+</div>
+<p-divider styleClass="text-secondary bg-main-color p-0 m-0" />
+<div class="flex justify-content-center text-white text-sm py-4 align-items-center">Copyright ©2024 NUMBERDOX. All
+    Rights
+    Reserved </div>

@@ -1,0 +1,12 @@
+<div class="private-layout flex">
+  <!-- Sidebar -->
+  <app-sidebar (isSidebarCollapsed)="getIsSidebarCollapsed($event)"></app-sidebar>
+
+  <!-- Main Content -->
+  <div class="priv-main-content" [ngClass]="{'collapsed' : isCollapsed}">
+    <app-dashboard-header></app-dashboard-header>
+    <section class="content overflow-y-autos p-4">
+      <router-outlet></router-outlet>
+    </section>
+  </div>
+</div>

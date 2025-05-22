@@ -1,0 +1,22 @@
+.upload-container-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+:host ::ng-deep .company-details-accordion {
+  .p-accordioncontent-content {
+    padding: 0;
+  }
+}
+
+:host ::ng-deep {
+  .no-ripple {
+    .p-ripple-element {
+      display: none !important;
+    }
+  }
+}

@@ -1,0 +1,70 @@
+<!-- <div class="flex flex-wrap justify-content-between container align-items-center shadow-1 h-full">
+    <img src="assets/logo.png" alt="" width="240" height="29">
+    <div class="flex flex-wrap gap-8">
+        @for (link of navLinks; track $index) {
+        <p class="text-base cursor-pointer" [routerLink]="link.path" routerLinkActive="active"
+            [routerLinkActiveOptions]="routerLinkActiveOptions">
+            {{ link.label }}
+        </p>
+        }
+    </div>
+    <app-custom-button label="Sign In" icon="pi pi-user" routerLink="/account/login" />
+</div> -->
+
+<div
+  class=" py-3 align-items-center shadow-1"
+>
+  <div class="container flex bg-white flex-wrap justify-content-between align-items-center">
+    <!-- Logo Section -->
+
+    <img
+      src="assets/icons/logo.png"
+      alt="Logo"
+      width="240"
+      height="29"
+      class="cursor-pointer"
+      routerLink="/home"
+    />
+
+    <!-- Mobile Toggle Button -->
+    <button
+      class="lg:hidden text-xl p-2 focus:outline-none ml-auto"
+      (click)="toggleMenu()"
+    >
+      <i [class]="menuOpen ? 'pi pi-times' : 'pi pi-bars'"></i>
+    </button>
+
+    <!-- Navigation Links -->
+    <div
+      class="flex-col lg:flex-row align-items-center gap-8 md:gap-6 mobile-menu"
+      [ngClass]="{ '': !menuOpen, 'mobile-show ': menuOpen, 'lg:flex': true }"
+    >
+      <ng-container
+        *ngFor="let link of navLinks; let i = index; trackBy: trackByFn"
+      >
+        <p
+          class="text-base cursor-pointer hover:text-blue-600"
+          [routerLink]="link.path"
+          (click)="toggleMenu()"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="routerLinkActiveOptions"
+          [queryParams]="link?.queryParams"
+        >
+          {{ link.label }}
+        </p>
+      </ng-container>
+      <app-custom-button
+        label="Sign In"
+        icon="pi pi-user mr-2"
+        routerLink="/account/login"
+        styleClass="block md:hidden"
+      />
+    </div>
+    <app-custom-button
+      label="Sign In"
+      icon="pi pi-user mr-2"
+      routerLink="/account/login"
+      styleClass="hidden md:block"
+    />
+  </div>
+</div>

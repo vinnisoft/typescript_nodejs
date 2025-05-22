@@ -1,0 +1,20 @@
+<app-table
+  [columns]="tableColumns"
+  [data]="companies"
+  [chartData]="companies"
+  [queryParams]="queryParams"
+  addBtnLabel="Add Company"
+  (refreshData)="getCompanies()"
+  (getChartViewData)="getCompanies()"
+  [chartView]="isChartView"
+  (onAdd)="router.navigate(['/companies/add'])"
+  (onUpload)="router.navigate(['/companies/upload-csv'])"
+  [showHeaderAddUpload]="user()?.role === 'admin'"
+/>
+<!-- <app-world-map
+  height="600px"
+  width="100%"
+  [zoom]="3"
+  [center]="{ lat: 37.7749, lng: -122.4194 }"
+>
+</app-world-map> -->

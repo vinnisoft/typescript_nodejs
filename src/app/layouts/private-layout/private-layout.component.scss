@@ -1,0 +1,16 @@
+.layout {
+  display: flex;
+}
+
+.priv-main-content {
+  width: calc(100% - 260px);
+  transition: width 0.3s ease-in-out;
+  .content {
+    height: calc(100vh - 80px);
+    overflow: auto;
+  }
+}
+
+.priv-main-content.collapsed {
+  width: calc(100% - 85px);
+}

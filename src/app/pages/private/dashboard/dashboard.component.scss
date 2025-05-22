@@ -1,0 +1,9 @@
+.bar-chart-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.unread {
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}

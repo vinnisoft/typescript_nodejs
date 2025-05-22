@@ -1,0 +1,157 @@
+<div class="overflow-scroll border-round-lg" style="background-color: #f7f9fb">
+  <table class="calendar-table" style="width: 100%; border-collapse: collapse">
+    <thead>
+      <tr>
+        <th style="min-width: 200px"></th>
+        <th
+          *ngFor="let monthYear of monthYears"
+          class="text-sm font-normal py-2 w-1"
+        >
+          {{ monthYear.month }} <br />
+          {{ monthYear.year }}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (events.length) {
+      <tr *ngFor="let event of events; let row = index">
+        <td class="text-start p-4">
+          <div class="text-md font-medium">
+            {{ event.companyInfo.companyName }}
+          </div>
+          <div class="text-sm text-primary">
+            {{ event.companyInfo.parentCompanyName }}
+          </div>
+        </td>
+        <td
+          class="p-0 relative"
+          *ngFor="let monthYear of monthYears; let col = index"
+          style="min-width: 60px"
+        >
+          <div
+            class="h-3rem overflow-scroll"
+            style="scroll-behavior: auto; scrollbar-width: none"
+          >
+            @for (doc of event.documents; track $index) {
+            <!-- Show events that match the current month/year -->
+            @if ((doc.dueDate | date:'MMM') === monthYear.month && (doc.dueDate
+            | date:'yyyy') == monthYear.year) {
+            <div
+              class="cursor-pointer"
+              style="
+                height: 35px;
+                clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
+              "
+              [ngStyle]="{ 'background-color': eventColors[doc.form.formType] }"
+              (click)="openMonthDialog(monthYear.month, event.companyInfo)"
+            >
+              <div class="text-white ml-1" style="font-size: 9px">
+                <div class="flex gap-2">
+                  {{ doc.dueDate | date : "MMM d" }}
+                  @if (getStatus(doc.dueDate) === 'Outstanding') {
+                  <img
+                    src="assets/icons/outstanding-docs.svg"
+                    alt="Outstanding"
+                    style="margin-top: 1px"
+                  />
+                  } @else if (getStatus(doc.dueDate) === 'Due on') {
+                  <img
+                    src="assets/icons/due-docs.svg"
+                    alt="Overdue"
+                    style="margin-top: 1px"
+                  />
+                  } @else {
+                  <img
+                    src="assets/icons/cpmpleted.svg"
+                    alt="Completed"
+                    style="margin-top: 1px"
+                  />
+                  }
+                </div>
+                {{ getStatus(doc.dueDate) }}
+              </div>
+            </div>
+            }
+
+            <!-- Show past outstanding events in the first month column -->
+            @if (col === 0 && shouldShowInCurrentMonth(doc.dueDate)) {
+            <div
+              class="cursor-pointer"
+              style="
+                height: 35px;
+                clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
+              "
+              [ngStyle]="{ 'background-color': eventColors[doc.form.formType] }"
+              (click)="openMonthDialog(monthYear.month, event.companyInfo)"
+            >
+              <div class="text-white ml-1" style="font-size: 9px">
+                <div class="flex gap-2">
+                  {{ doc.dueDate | date : "MMM d" }}
+                  <img
+                    src="assets/icons/outstanding-docs.svg"
+                    alt="Outstanding"
+                    style="margin-top: 1px"
+                  />
+                </div>
+                Outstanding
+              </div>
+            </div>
+            } }
+          </div>
+        </td>
+      </tr>
+      } @else {
+      <tr>
+        <td [attr.colspan]="monthYears.length + 1" class="text-center">
+          <div
+            class="flex flex-column justify-content-center align-items-center"
+          >
+            <img
+              src="/assets/icons/no-data.png"
+              alt="no-data"
+              class="mx-auto block p-8 w-5"
+            />
+            <span class="text-sm">No Data Available</span>
+          </div>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<p-dialog
+  [(visible)]="showEventDetailsDialog"
+  [modal]="true"
+  styleClass="border-none border-round-lg overflow-hidden"
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [style]="{ width: '30vw' }"
+  [draggable]="false"
+>
+  <ng-template #headless>
+    <div
+      class="bg-white p-5 border-round-lg shadow-lg"
+      style="min-width: 340px; max-width: 90vw; position: relative"
+    >
+      <div class="flex justify-content-between align-items-center mb-3">
+        <div style="font-weight: 600; font-size: 18px">
+          {{ selectedMonthEvents[0]?.companyName || "" }}
+        </div>
+        <i
+          (click)="showEventDetailsDialog = false"
+          class="pi pi-times cursor-pointer"
+        >
+        </i>
+      </div>
+      <ng-container *ngFor="let event of selectedMonthEvents">
+        <div class="mb-3">
+          <div style="font-weight: 600">{{ event.form?.formName }}</div>
+          <div style="font-size: 13px">
+            {{ event.dueDate | date : "MMM d, YYYY" }}
+          </div>
+          <div style="font-size: 13px">{{ getStatus(event.dueDate) }}</div>
+        </div>
+      </ng-container>
+    </div>
+  </ng-template>
+</p-dialog>

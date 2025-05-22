@@ -1,0 +1,9 @@
+<p-toast [breakpoints]="{ '920px': { width: '100%', right: '0', left: '0' } }" />
+@if (isBrowser) {
+<ng-container [ngSwitch]="layout">
+  <public-layout *ngSwitchCase="Layouts.Public" />
+  <account-layout *ngSwitchCase="Layouts.Account" />
+  <private-layout *ngSwitchCase="Layouts.Private" />
+</ng-container>
+<app-confirm-dialog></app-confirm-dialog>
+}

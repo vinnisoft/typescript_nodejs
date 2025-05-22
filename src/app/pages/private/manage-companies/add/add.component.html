@@ -1,0 +1,1001 @@
+<div class="flex justify-content-between align-items-center mb-2">
+  <div class="flex gap-2 align-items-center">
+    <i
+      class="pi pi-arrow-left cursor-pointer"
+      [routerLink]="['/companies']"
+    ></i>
+    <span class="text-xl font-semibold">
+      {{ companyId ? companyForm.get("companyName")?.value : "Add Company" }}
+    </span>
+  </div>
+  <app-companies-redirection />
+</div>
+
+@if (companyId && !isFormEdited) {
+
+<div class="bg-light-purple p-4 w-full border-round-lg overflow-auto">
+  <div class="flex flex-column w-full bg-light-purple">
+    <div
+      class="flex flex-column md:flex-row gap-3 justify-content-between mb-2"
+    >
+      <span class="text-xl font-semibold">{{
+        companyFormBuilderName?.formName ?? "Company Data"
+      }}</span>
+      @if (user()?.role === 'admin') {
+      <div class="flex gap-2 z-2">
+        <app-custom-button
+          label="Edit"
+          icon="pi pi-pencil"
+          size="small"
+          (onClick)="onClickEdit()"
+        />
+        @if (companyForm.get("companyType")?.value &&
+        companyForm.get("companyType")?.value !== 'main') {
+        <app-custom-button
+          label="Delete"
+          severity="danger"
+          icon="pi pi-trash"
+          size="small"
+          (onClick)="onClickDelete($event)"
+        />
+        }
+      </div>
+      }
+    </div>
+    @if (user()?.role === 'admin') {
+    <div class="grid bg-light-purple">
+      @for (ff of companyDataFields; track ff._id) { @if(ff.field ===
+      'companyName' || ff.field === 'alias' || ff.field === 'status' || ff.field
+      === 'companyNumber') {
+      <div class="col-12 lg:col-3">
+        <div class="flex justify-content-between grid">
+          <div class="font-medium col-6">
+            {{ ff.name }}
+          </div>
+          <div class="col-6">
+            @if(ff.isDefault) { @if(companyForm.get(ff.field)?.value) {
+            {{
+              ff.type === "date"
+                ? moment(companyForm.get(ff.field)?.value).format("DD/MM/YYYY")
+                : ff.capitalize
+                ? camelCaseToHeading(companyForm.get(ff.field)?.value)
+                : companyForm.get(ff.field)?.value
+            }}
+            }}
+          </div>
+        </div>
+      </div>
+      } }
+    </div>
+    } @else {
+    <p-accordion>
+      <div class="bg-light-purple w-full border-round-lg overflow-auto">
+        <p-accordion-panel value="0" [class]="'no-ripple'">
+          <p-accordion-header class="p-0">
+            <ng-template #toggleicon let-active="active">
+              @if (active) {
+              <i class="pi pi-chevron-up absolute right-0"></i>
+              } @else {
+              <i class="pi pi-chevron-down absolute right-0"></i>
+              }
+              <div class="flex flex-column w-full bg-light-purple">
+                <div class="grid bg-light-purple">
+                  @for (ff of companyDataFields; track ff._id) { @if(ff.field
+                  === 'companyName' || ff.field === 'alias' || ff.field ===
+                  'status') {
+                  <div class="col-12 lg:col-4">
+                    <div class="flex justify-content-between grid">
+                      <div class="font-medium col-6">
+                        {{ ff.name }}
+                      </div>
+                      <div class="col-6 text-gray-600">
+                        @if(ff.isDefault) {
+                        @if(companyForm.get(ff.field)?.value) {
+                        {{
+                          ff.type === "date"
+                            ? moment(companyForm.get(ff.field)?.value).format(
+                                "DD/MM/YYYY"
+                              )
+                            : ff.capitalize
+                            ? camelCaseToHeading(
+                                companyForm.get(ff.field)?.value
+                              )
+                            : companyForm.get(ff.field)?.value
+                        }}}}
+                      </div>
+                    </div>
+                  </div>
+                  } }
+                </div>
+              </div>
+            </ng-template>
+          </p-accordion-header>
+          <p-accordion-content class="company-details-accordion">
+            <div class="grid bg-light-purple">
+              @for (ff of companyDataFields; track ff._id) { @if(ff.field !==
+              'companyName' && ff.field !== 'alias' && ff.field !== 'status') {
+              @if(ff.field === 'parentCompany' &&
+              companyForm.get('companyType')?.value ==='subsidiary') {
+              <div class="col-12 lg:col-4">
+                <div class="flex justify-content-between grid">
+                  <div class="font-medium col-6">
+                    {{ ff.name }}
+                  </div>
+                  <div class="col-6 font-light text-gray-600 text-bold">
+                    {{ getCompanyName(companyForm.get(ff.field)?.value) }}
+                  </div>
+                </div>
+              </div>
+              } @else if(ff.field !== 'parentCompany') {
+              <div class="col-12 lg:col-4">
+                <div class="flex justify-content-between grid">
+                  <div class="font-medium col-6">
+                    {{ ff.name }}
+                  </div>
+                  <div class="col-6 text-gray-600">
+                    @if(companyForm.get(ff.field)?.value) {
+                    {{
+                      ff.type === "date"
+                        ? moment(companyForm.get(ff.field)?.value).format(
+                            "DD/MM/YYYY"
+                          )
+                        : ff.capitalize
+                        ? camelCaseToHeading(companyForm.get(ff.field)?.value)
+                        : companyForm.get(ff.field)?.value
+                    }}
+                    } @else { @if(companyForm.get(ff.field)?.value) {
+
+                    {{
+                      ff.type === "date"
+                        ? moment(
+                            companyForm.get("companyDataCustomFieldValues")
+                              ?.value[ff.field]
+                          ).format("DD/MM/YYYY")
+                        : ff.capitalize
+                        ? camelCaseToHeading(
+                            companyForm.get("companyDataCustomFieldValues")
+                              ?.value[ff.field]
+                          )
+                        : companyForm.get("companyDataCustomFieldValues")
+                            ?.value[ff.field]
+                    }}
+                    } }
+                  </div>
+                </div>
+              </div>
+              } } }
+              <span class="col-12 text-primary text-xl font-semibold mt-4">{{
+                registeredAddressFields.name
+              }}</span>
+              @for (ff of registeredAddressFields.children; track ff._id) {
+              <div class="col-12 lg:col-4">
+                <div class="flex justify-content-between grid">
+                  <div class="font-medium col-6">{{ ff.name }}</div>
+                  <div class="col-6 text-gray-600">
+                    @if(ff.isDefault) {
+                    @if(registeredAddressForm.get(ff.field)?.value) {
+
+                    {{
+                      ff.type === "date"
+                        ? moment(
+                            registeredAddressForm.get(ff.field)?.value
+                          ).format("DD/MM/YYYY")
+                        : ff.field === "registeredAddressCountry"
+                        ? registeredAddressForm.get(ff.field)?.value.countryName
+                        : ff.capitalize
+                        ? camelCaseToHeading(
+                            registeredAddressForm.get(ff.field)?.value
+                          )
+                        : registeredAddressForm.get(ff.field)?.value
+                    }}
+                    } } @else { @if(registeredAddressForm.get(ff.field)?.value)
+                    {
+
+                    {{
+                      ff.type === "date"
+                        ? moment(
+                            registeredAddressForm
+                              .get("registeredAddressCustomFieldValues")
+                              ?.get(ff.field)?.value
+                          ).format("DD/MM/YYYY")
+                        : ff.capitalize
+                        ? camelCaseToHeading(
+                            registeredAddressForm
+                              .get("registeredAddressCustomFieldValues")
+                              ?.get(ff.field)?.value
+                          )
+                        : registeredAddressForm
+                            .get("registeredAddressCustomFieldValues")
+                            ?.get(ff.field)?.value
+                    }}
+                    } }
+                  </div>
+                </div>
+              </div>
+              }
+              <span class="col-12 text-primary text-xl font-semibold mt-4">{{
+                businessAddressFields.name
+              }}</span>
+              @for (ff of businessAddressFields.children; track ff._id) {
+              <div class="col-12 lg:col-4">
+                <div class="flex justify-content-between grid">
+                  <div class="font-medium col-6">{{ ff.name }}</div>
+                  <div class="col-6 text-gray-600">
+                    @if(ff.isDefault) {
+                    @if(businessAddressForm.get(ff.field)?.value) {
+
+                    {{
+                      ff.type === "date"
+                        ? moment(
+                            businessAddressForm.get(ff.field)?.value
+                          ).format("DD/MM/YYYY")
+                        : ff.field === "businessAddressCountry"
+                        ? businessAddressForm.get(ff.field)?.value.countryName
+                        : ff.capitalize
+                        ? camelCaseToHeading(
+                            businessAddressForm.get(ff.field)?.value
+                          )
+                        : businessAddressForm.get(ff.field)?.value
+                    }}
+                    } } @else { @if(businessAddressForm.get(ff.field)?.value) {
+
+                    {{
+                      ff.type === "date"
+                        ? moment(
+                            businessAddressForm
+                              .get("businessAddressCustomFieldValues")
+                              ?.get(ff.field)?.value
+                          ).format("DD/MM/YYYY")
+                        : ff.capitalize
+                        ? camelCaseToHeading(
+                            businessAddressForm
+                              .get("businessAddressCustomFieldValues")
+                              ?.get(ff.field)?.value
+                          )
+                        : businessAddressForm
+                            .get("businessAddressCustomFieldValues")
+                            ?.get(ff.field)?.value
+                    }}
+                    } }
+                  </div>
+                </div>
+              </div>
+              }
+            </div>
+          </p-accordion-content>
+        </p-accordion-panel>
+      </div>
+    </p-accordion>
+    }
+  </div>
+</div>
+} @else { @if ( companyForm.get("companyType")?.value !== 'main') {
+<div class="bg-light-grey p-2 md:p-4 border-round-lg mb-3">
+  <div class="flex gap-2 text-sm font-semibold align-items-center">
+    <p-toggleswitch
+      [(ngModel)]="isShareHoldingInvolved"
+      (onChange)="onSwitchShareHoldings()"
+    />
+    <span>Is your company involved in shareholding?</span>
+  </div>
+  @if(isShareHoldingInvolved) {
+  <form [formGroup]="companyForm">
+    <div class="grid m-0">
+      <div class="col-12 md:col-3 lg:col-3 mt-3">
+        <div class="flex justify-content-between">
+          <label for="Companies">Shareholding Companies</label>
+          @if (selectedShareHoldings.length) {
+          <i
+            class="pi pi-trash text-red-600 cursor-pointer"
+            (click)="onClearShareHoldings()"
+          ></i>
+          }
+        </div>
+        <p-treeselect
+          #treeselect
+          [containerStyleClass]="controls['shareHoldings'].errors?.['required'] &&
+                (controls['shareHoldings'].touched || controls['shareHoldings'].dirty) ? 'border-red-600 w-full mt-2' : 'w-full mt-2'"
+          display="chip"
+          [options]="companies"
+          [(ngModel)]="selectedShareHoldings"
+          [ngModelOptions]="{ standalone: true }"
+          [metaKeySelection]="false"
+          selectionMode="checkbox"
+          placeholder="Select Companies"
+          (onNodeSelect)="onChangeShareholdingsSelection($event, true)"
+          (onNodeUnselect)="onChangeShareholdingsSelection($event, false)"
+          appendTo="body"
+          [propagateSelectionDown]="false"
+          [propagateSelectionUp]="false"
+        >
+          <ng-template #value let-selectedNodes>
+            @if (selectedNodes && selectedNodes.length) { @for (cmp of
+            selectedNodes; track $index) {
+            <p-chip
+              [label]="cmp?.companyName"
+              styleClass="bg-primary text-white border-round-xl"
+              class="text-white"
+              removeIcon="pi pi-times"
+              (onRemove)="
+                onRemoveShareHolding($index, selectedNodes, treeselect)
+              "
+            />
+            } } @else {
+            <span>Select Companies</span>
+            }
+          </ng-template>
+          <ng-template let-node pTemplate="default">
+            <span class="font-semibold">{{ node?.companyName }}</span>
+          </ng-template>
+        </p-treeselect>
+        @if (controls['shareHoldings'].errors?.['required'] &&
+        (controls['shareHoldings'].touched || controls['shareHoldings'].dirty))
+        {
+        <small class="text-red-600 mt-2">Please select companies</small>
+        }
+      </div>
+      @for (holding of shareHoldings.controls; track $index) {
+      <div class="col-12 md:col-3 lg:col-3 mt-3" formArrayName="shareHoldings">
+        <div [formGroupName]="$index">
+          <div class="flex justify-content-between">
+            <label class="mb-2">{{
+              holding.get("company")?.value?.companyName
+            }}</label>
+            <i
+              class="pi pi-trash text-red-600 cursor-pointer"
+              (click)="onDeleteShareHolding($index, treeselect)"
+            ></i>
+          </div>
+          <p-inputnumber
+            class="w-full"
+            inputId="percent"
+            formControlName="percentage"
+            mode="decimal"
+            min="0"
+            [max]="getRemainingPercentage($index)"
+            step="0.1"
+            [useGrouping]="false"
+            suffix="%"
+            (onInput)="updatePercentageValidators()"
+          ></p-inputnumber>
+          @if ((holding.get('percentage')?.touched ||
+          holding.get('percentage')?.dirty) && (holding.get('percentage')?.value
+          === 0 || holding.get('percentage')?.value === '0' ||
+          holding.get('percentage')?.errors)) {
+          <small class="text-red-600 mt-1"
+            >Shareholding percentage must be greater than 0</small
+          >
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </form>
+  }
+</div>
+}
+<div class="bg-light-grey p-2 md:p-4 border-round-lg">
+  <form [formGroup]="companyForm">
+    <h3>Company Data</h3>
+    <div class="grid">
+      @for (ff of companyDataFields; track ff._id) { @if(!ff.isDefault) {
+      <div
+        class="col-12 md:col-6 lg:col-4 md:mb-3"
+        formGroupName="companyDataCustomFieldValues"
+      >
+        @switch (ff.type) { @case ('text') {
+        <app-custom-input
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Enter ' + ff.name"
+          [error]="(companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                                          (companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.touched || companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.dirty)) || (companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.errors?.['emptySpace'] && 
+                                          (companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.touched || companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-input>
+        } @case ('date') {
+        <app-custom-calendar
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [error]="(companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                            (companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.touched || companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-calendar>
+        } @case ('number') {
+        <app-custom-input-number
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+          [error]="(companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                            (companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.touched || companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-input-number>
+        } @case ('dropdown') {
+        <app-custom-dropdown
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [options]="selectFieldOptions?.[ff.field]?.options"
+          [optionLabel]="selectFieldOptions?.[ff.field]?.optionLabel"
+          [optionValue]="selectFieldOptions?.[ff.field]?.optionValue"
+          [filter]="true"
+          (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+          [error]="(companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                            (companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.touched || companyForm.get('companyDataCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-dropdown>
+        } }
+      </div>
+      } @else { @switch (ff.type) { @case ('text') {
+      <div class="col-12 md:col-6 lg:col-4 md:mb-3">
+        <app-custom-input
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Enter ' + ff.name"
+          [error]="(companyForm.get(ff.field)?.errors?.['required'] &&
+                              (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) || (companyForm.get(ff.field)?.errors?.['emptySpace'] && 
+                              (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-input>
+      </div>
+      } @case ('date') {
+      <div class="col-12 md:col-6 lg:col-4 md:mb-3">
+        <app-custom-calendar
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [error]="(companyForm.get(ff.field)?.errors?.['required'] &&
+                (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-calendar>
+      </div>
+      } @case ('number') {
+      <app-custom-input-number
+        [label]="ff.name"
+        [formControlName]="ff.field"
+        [placeholder]="'Enter ' + ff.name"
+        [error]="(companyForm.get(ff.field)?.errors?.['required'] &&
+                          (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) || (companyForm.get(ff.field)?.errors?.['emptySpace'] && 
+                          (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+        [loading]="loading"
+      ></app-custom-input-number>
+      } @case ('dropdown') { @if(ff.field === 'parentCompany') {
+      @if(companyForm.get('companyType')?.value === 'subsidiary' &&
+      !isShareHoldingInvolved) {
+      <div class="col-12 md:col-6 lg:col-4 md:mb-3">
+        <app-custom-dropdown
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [options]="selectFieldOptions?.[ff.field]?.options"
+          [optionLabel]="selectFieldOptions?.[ff.field]?.optionLabel"
+          [optionValue]="selectFieldOptions?.[ff.field]?.optionValue"
+          [filter]="true"
+          (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+          [error]="(companyForm.get(ff.field)?.errors?.['required'] &&
+                            (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-dropdown>
+      </div>
+      } } @else {
+      <div class="col-12 md:col-6 lg:col-4 md:mb-3">
+        <app-custom-dropdown
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [options]="selectFieldOptions?.[ff.field]?.options"
+          [optionLabel]="selectFieldOptions?.[ff.field]?.optionLabel"
+          [optionValue]="selectFieldOptions?.[ff.field]?.optionValue"
+          [filter]="true"
+          (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+          [error]="(companyForm.get(ff.field)?.errors?.['required'] &&
+                (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-dropdown>
+      </div>
+      } } } } }
+    </div>
+  </form>
+
+  <form [formGroup]="registeredAddressForm">
+    <h3>{{ registeredAddressFields.name }}</h3>
+    <div class="grid">
+      @for (ff of registeredAddressFields.children; track ff._id) {
+      <div class="col-12 md:col-6 lg:col-3 md:mb-3">
+        @if(!ff.isDefault) {
+        <div formGroupName="registeredAddressCustomFieldValues">
+          @switch (ff.type) { @case ('text') {
+          <app-custom-input
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Enter ' + ff.name"
+            [error]="(registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                                          (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) || (registeredAddressForm.get('customFieldValues')?.get(ff.field)?.errors?.['emptySpace'] && 
+                                          (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-input>
+          } @case ('date') {
+          <app-custom-calendar
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Select ' + ff.name"
+            [error]="(registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                            (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-calendar>
+          } @case ('number') {
+          <app-custom-input-number
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Enter ' + ff.name"
+            [error]="(registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                                          (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) || (registeredAddressForm.get('customFieldValues')?.get(ff.field)?.errors?.['emptySpace'] && 
+                                          (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-input-number>
+          } @case ('dropdown') {
+          <app-custom-dropdown
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Select ' + ff.name"
+            [options]="selectFieldOptions?.[ff.field]?.options"
+            [optionLabel]="selectFieldOptions?.[ff.field]?.optionLabel"
+            [optionValue]="selectFieldOptions?.[ff.field]?.optionValue"
+            [filter]="true"
+            (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+            [error]="(registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                            (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-dropdown>
+          } }
+        </div>
+        } @else { @switch (ff.type) { @case ('text') {
+        <!-- @if(ff.field ===
+        'registeredAddress') {
+        <app-google-places-input
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Enter ' + ff.name"
+          [error]="(registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                    (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || 
+                    registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) || 
+                    (registeredAddressForm.get('customFieldValues')?.get(ff.field)?.errors?.['emptySpace'] && 
+                    (registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.touched || 
+                    registeredAddressForm.get('registeredAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? 
+                    errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-google-places-input>
+        } @else { -->
+
+        <app-custom-input
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Enter ' + ff.name"
+          [error]="(registeredAddressForm.get(ff.field)?.errors?.['required'] &&
+                                (registeredAddressForm.get(ff.field)?.touched || registeredAddressForm.get(ff.field)?.dirty)) || (registeredAddressForm.get(ff.field)?.errors?.['emptySpace'] && 
+                                (registeredAddressForm.get(ff.field)?.touched || registeredAddressForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-input>
+        <!-- } -->
+        } @case ('date') {
+        <app-custom-calendar
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [error]="(registeredAddressForm.get(ff.field)?.errors?.['required'] &&
+                (registeredAddressForm.get(ff.field)?.touched || registeredAddressForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-calendar>
+        } @case ('number') {
+        <app-custom-input-number
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Enter ' + ff.name"
+          [error]="(registeredAddressForm.get(ff.field)?.errors?.['required'] &&
+                              (registeredAddressForm.get(ff.field)?.touched || registeredAddressForm.get(ff.field)?.dirty)) || (registeredAddressForm.get(ff.field)?.errors?.['emptySpace'] && 
+                              (registeredAddressForm.get(ff.field)?.touched || registeredAddressForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-input-number>
+        } @case ('dropdown') {
+        <app-custom-dropdown
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          inputClass="country-overlay"
+          [placeholder]="'Select ' + ff.name"
+          [options]="selectFieldOptions?.[ff.field]?.options"
+          [optionLabel]="selectFieldOptions?.[ff.field]?.optionLabel"
+          [optionValue]="selectFieldOptions?.[ff.field]?.optionValue"
+          [filter]="true"
+          (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+          [error]="(registeredAddressForm.get(ff.field)?.errors?.['required'] &&
+                        (registeredAddressForm.get(ff.field)?.touched || registeredAddressForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-dropdown>
+        } } }
+      </div>
+      }
+    </div>
+  </form>
+
+  <form [formGroup]="businessAddressForm">
+    <h3>{{ businessAddressFields.name }}</h3>
+    <div class="grid">
+      @for (ff of businessAddressFields.children; track ff._id) {
+      <div class="col-12 md:col-6 lg:col-3 md:mb-3">
+        @if(!ff.isDefault) {
+        <div formGroupName="businessAddressCustomFieldValues">
+          @switch (ff.type) { @case ('text') {
+          <app-custom-input
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Enter ' + ff.name"
+            [error]="(businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                                          (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.touched || businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.dirty)) || (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.errors?.['emptySpace'] && 
+                                          (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.touched || businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-input>
+          } @case ('date') {
+          <app-custom-calendar
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Select ' + ff.name"
+            [error]="(businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                            (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.touched || businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-calendar>
+          } @case ('number') {
+          <app-custom-input-number
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Enter ' + ff.name"
+            [error]="(businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                                          (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.touched || businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.dirty)) || (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.errors?.['emptySpace'] && 
+                                          (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.touched || businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-input-number>
+          } @case ('dropdown') {
+          <app-custom-dropdown
+            [label]="ff.name"
+            [formControlName]="ff.field"
+            [placeholder]="'Select ' + ff.name"
+            [options]="selectFieldOptions?.[ff.field]?.options"
+            [optionLabel]="selectFieldOptions?.[ff.field]?.optionLabel"
+            [optionValue]="selectFieldOptions?.[ff.field]?.optionValue"
+            [filter]="true"
+            (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+            [error]="(businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.errors?.['required'] &&
+                            (businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.touched || businessAddressForm.get('businessAddressCustomFieldValues')?.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+            [loading]="loading"
+          ></app-custom-dropdown>
+          } }
+        </div>
+        } @else { @switch (ff.type) { @case ('text') {
+        <app-custom-input
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Enter ' + ff.name"
+          [error]="(businessAddressForm.get(ff.field)?.errors?.['required'] &&
+                              (businessAddressForm.get(ff.field)?.touched || businessAddressForm.get(ff.field)?.dirty)) || (businessAddressForm.get(ff.field)?.errors?.['emptySpace'] && 
+                              (businessAddressForm.get(ff.field)?.touched || businessAddressForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-input>
+        } @case ('date') {
+        <app-custom-calendar
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [error]="(companyForm.get(ff.field)?.errors?.['required'] &&
+                (companyForm.get(ff.field)?.touched || companyForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-calendar>
+        } @case ('number') {
+        <app-custom-input-number
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Enter ' + ff.name"
+          [error]="(businessAddressForm.get(ff.field)?.errors?.['required'] &&
+                              (businessAddressForm.get(ff.field)?.touched || businessAddressForm.get(ff.field)?.dirty)) || (businessAddressForm.get(ff.field)?.errors?.['emptySpace'] && 
+                              (businessAddressForm.get(ff.field)?.touched || businessAddressForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-input-number>
+        } @case ('dropdown') {
+        <app-custom-dropdown
+          [label]="ff.name"
+          [formControlName]="ff.field"
+          [placeholder]="'Select ' + ff.name"
+          [options]="selectFieldOptions?.[ff.field]?.options"
+          [optionLabel]="selectFieldOptions?.[ff.field]?.optionLabel"
+          [optionValue]="selectFieldOptions?.[ff.field]?.optionValue"
+          [filter]="true"
+          (ngModelChange)="selectFieldOptions?.[ff.field]?.onChange && selectFieldOptions?.[ff.field].onChange()"
+          [error]="(businessAddressForm.get(ff.field)?.errors?.['required'] &&
+                        (businessAddressForm.get(ff.field)?.touched || businessAddressForm.get(ff.field)?.dirty)) ? errorMessages(ff.name) : null"
+          [loading]="loading"
+        ></app-custom-dropdown>
+        } } }
+      </div>
+      }
+    </div>
+  </form>
+  <div
+    class="flex flex-column md:flex-row w-full justify-content-end gap-2 mt-2"
+  >
+    <app-custom-button
+      [label]="companyId ? 'Update' : 'Save'"
+      type="submit"
+      styleClass="w-full px-6"
+      (onClick)="onSubmit()"
+      [loading]="loading"
+    />
+    <app-custom-button
+      [label]="'Cancel'"
+      styleClass="w-full px-6 bg-gray-500 border-none text-white"
+      (onClick)="onClickCancel()"
+    />
+  </div>
+</div>
+
+} @if (companyId && tabHeaders.length) {
+<p-tabs
+  [value]="tabHeaders[0]._id"
+  scrollable
+  class="mt-4 form-builder-tabs"
+  #tabs
+>
+  <div class="flex flex-wrap justify-content-between">
+    <p-tablist class="w-full md:w-10">
+      @for(tab of tabHeaders; track tab){
+      <p-tab
+        [value]="tab._id"
+        (click)="onClickTab(tab)"
+        class="border-2 py-2 px-3 border-round-top-xl"
+      >
+        {{ tab.formName }}
+      </p-tab>
+      }
+    </p-tablist>
+    <div class="flex gap-2 align-items-center">
+      <!-- <i class="pi pi-calendar text-primary cursor-pointer" (click)="op.toggle($event)"></i> -->
+      <p-datepicker
+        class="bg-gray-100 calender-input border-round-lg z-3"
+        [showIcon]="true"
+        #yearFilter
+        [(ngModel)]="yearFilterValue"
+        [iconDisplay]="'input'"
+        view="year"
+        dateFormat="yy"
+        inputStyleClass="hidden-input"
+        [hideOnDateTimeSelect]="false"
+        [ngClass]="{ active: this.yearFilterValue }"
+      >
+        <ng-template #inputicon let-clickCallBack="clickCallBack">
+          <div class="flex">
+            <i
+              class="pi pi-calendar text-primary cursor-pointer"
+              (click)="clickCallBack($event)"
+            ></i>
+          </div>
+        </ng-template>
+        <ng-template #footer>
+          <div class="flex gap-2 mt-2 justify-content-end p-2 px-4">
+            <app-custom-button
+              label="Apply"
+              size="small"
+              (onClick)="applyYearFilter(yearFilter)"
+            />
+            <app-custom-button
+              label="Clear"
+              variant="outlined"
+              size="small"
+              (onClick)="clearYearFilter(yearFilter)"
+            />
+          </div>
+        </ng-template>
+      </p-datepicker>
+      @if (userPrivileges() &&
+      userPrivileges()[currentSelectedTab.formType].manage) {
+      <app-custom-button
+        [label]="'Add'"
+        [icon]="'pi pi-plus text-xs'"
+        size="small"
+        ex
+        (onClick)="showAddDocumentDrawer = true"
+      />
+      <p-drawer
+        [(visible)]="showAddDocumentDrawer"
+        position="right"
+        [closable]="false"
+        [dismissible]="false"
+        styleClass="overflow-auto md:w-5 p-4 bg-gray-100"
+      >
+        <ng-template #headless>
+          <form [formGroup]="docUploadForm" (ngSubmit)="addDocument()">
+            <p class="text-lg font-bold">Add</p>
+            <app-custom-dropdown
+              inputClass="md:w-8"
+              [label]="'Doc. Type'"
+              [options]="docTypeOptions"
+              formControlName="docType"
+              [error]="(docUploadFormControls['docType'].errors?.['required'] &&
+                            (docUploadFormControls['docType'].touched || docUploadFormControls['docType'].dirty))  ? errorMessages('Doc Type') : null"
+              [loading]="loading"
+            />
+            <p class="text-lg font-bold">Add Document</p>
+            <app-custom-input
+              [label]="'Title of Document'"
+              formControlName="title"
+              [error]="(docUploadFormControls['title'].errors?.['required'] &&
+                        (docUploadFormControls['title'].touched || docUploadFormControls['title'].dirty)) || (docUploadFormControls['title'].errors?.['emptySpace'] && 
+                        (docUploadFormControls['title'].touched || docUploadFormControls['title'].dirty)) ? errorMessages('Title') : null"
+              [loading]="loading"
+            />
+
+            <form-file-upload
+              label="Upload"
+              formControlName="document"
+              [error]="(docUploadFormControls['document'].errors?.['required'] &&
+                    (docUploadFormControls['document'].touched || docUploadFormControls['document'].dirty))  ? 'Please upload a file.' : null"
+              [loading]="loading"
+            />
+
+            <app-custom-textarea
+              [label]="'Description'"
+              formControlName="description"
+              [error]="(docUploadFormControls['description'].errors?.['required'] &&
+                      (docUploadFormControls['description'].touched || docUploadFormControls['description'].dirty)) || (docUploadFormControls['description'].errors?.['emptySpace'] && 
+                      (docUploadFormControls['description'].touched || docUploadFormControls['description'].dirty)) ? errorMessages('Description') : null"
+              [loading]="loading"
+            />
+
+            <p class="text-lg font-bold">Add Note</p>
+            <form-file-upload
+              label="Upload Note"
+              [multiple]="true"
+              formControlName="notes"
+              [error]="(docUploadFormControls['notes'].errors?.['required'] &&
+                (docUploadFormControls['notes'].touched || docUploadFormControls['notes'].dirty))  ? 'Please upload a file.' : null"
+              [loading]="loading"
+            />
+
+            <div class="grid">
+              <div class="col-12 lg:col-6">
+                <app-custom-calendar
+                  [label]="'Filed Date'"
+                  formControlName="filedDate"
+                  [error]="(docUploadFormControls['filedDate'].errors?.['required'] &&
+                            (docUploadFormControls['filedDate'].touched || docUploadFormControls['filedDate'].dirty)) ? errorMessages('Filed Date') : null"
+                  [loading]="loading"
+                />
+              </div>
+              <div class="col-12 lg:col-6">
+                <app-custom-calendar
+                  [label]="'Due Date'"
+                  formControlName="dueDate"
+                  [error]="(docUploadFormControls['dueDate'].errors?.['required'] &&
+                        (docUploadFormControls['dueDate'].touched || docUploadFormControls['dueDate'].dirty)) ? errorMessages('Due Date') : null"
+                  [loading]="loading"
+                />
+              </div>
+              <div class="col-12 lg:col-6">
+                <app-custom-dropdown
+                  [label]="'Frequency'"
+                  [options]="frequencyOptions"
+                  optionLabel="name"
+                  optionValue="value"
+                  formControlName="frequency"
+                  [error]="(docUploadFormControls['frequency'].errors?.['required'] &&
+                            (docUploadFormControls['frequency'].touched || docUploadFormControls['frequency'].dirty))  ? errorMessages('Frequency') : null"
+                  [loading]="loading"
+                />
+              </div>
+              <div class="col-12 lg:col-6">
+                <app-custom-input
+                  [label]="'Reminder (days)'"
+                  [keyfilter]="'num'"
+                  prefix="days"
+                  formControlName="reminder"
+                  [error]="(docUploadFormControls['reminder'].errors?.['required'] &&
+                    (docUploadFormControls['reminder'].touched || docUploadFormControls['reminder'].dirty)) ? errorMessages('Reminder') : null"
+                  [loading]="loading"
+                />
+                <!-- (ngModelChange)="onReminderInput()" -->
+              </div>
+              <div class="col-12 lg:col-6">
+                <app-custom-calendar
+                  [label]="'Reminder Trigger Date'"
+                  formControlName="reminderTriggerDate"
+                  [error]="(docUploadFormControls['reminderTriggerDate'].errors?.['required'] &&
+                (docUploadFormControls['reminderTriggerDate'].touched || docUploadFormControls['reminderTriggerDate'].dirty)) ? errorMessages('Reminder Trigger Date') : null"
+                  [loading]="loading"
+                />
+              </div>
+              <!-- <div class="lg:col-6">
+                <app-custom-dropdown
+                  [label]="'Repeat'"
+                  [options]="repeatOptions"
+                  optionLabel="name"
+                  optionValue="value"
+                  formControlName="repeat"
+                  [error]="(docUploadFormControls['repeat'].errors?.['required'] &&
+                                (docUploadFormControls['repeat'].touched || docUploadFormControls['repeat'].dirty))  ? errorMessages('Repeat') : null"
+                  [loading]="loading"
+                />
+              </div> -->
+              @if(docUploadForm.get('_id')?.value) {
+              <div class="col-12 lg:col-6">
+                <app-custom-calendar
+                  [label]="'Last Updated'"
+                  formControlName="updatedAt"
+                  [disabled]="true"
+                  [loading]="loading"
+                />
+              </div>
+              }
+            </div>
+            <div class="flex justify-content-end gap-2">
+              <app-custom-button
+                type="submit"
+                [label]="docUploadFormControls['_id'].value ? 'Update' : 'Save'"
+                styleClass="px-3"
+                [loading]="loading"
+              />
+              <app-custom-button
+                [label]="'Cancel'"
+                styleClass="bg-gray-500 text-white"
+                [disabled]="loading"
+                severity="secondary"
+                (onClick)="closeDocUploadDrawer()"
+              />
+            </div>
+          </form>
+        </ng-template>
+      </p-drawer>
+      }
+    </div>
+  </div>
+  <p-tabpanels class="min-f-full">
+    <app-table
+      [columns]="tableColumns"
+      [data]="tableData"
+      [queryParams]="queryParams"
+      (onEdit)="editDocForm($event)"
+      (onDelete)="deleteDoc($event)"
+      (refreshData)="getFormDocs()"
+      [showHeaderButtons]="false"
+    />
+  </p-tabpanels>
+</p-tabs>
+}
+
+<p-confirmdialog
+  styleClass="border-none border-round-lg overflow-hidden w-11 md:w-4"
+  [draggable]="false"
+>
+  <ng-template #headless let-onAccept="onAccept" let-onReject="onReject">
+    <div class="flex p-3 bg-primary align-items-center gap-1">
+      <i class="pi pi-trash text-white"></i>
+      <span class="text-white text-xl font-semibold">Delete</span>
+    </div>
+    <div class="p-3">
+      <span class="flex text-lg font-semibold mb-4 align-items-center"
+        >Are you sure you want to delete this record? If you proceed, all
+        employees associated with this company will lose access to it.</span
+      >
+      <div class="flex justify-content-end gap-3">
+        <app-custom-button
+          label="Delete"
+          styleClass="bg-primary px-5 text-white"
+          (onClick)="onAccept()"
+        />
+        <app-custom-button
+          label="Cancel"
+          variant="outlined"
+          styleClass="px-4 bg-gray-500 text-white"
+          (onClick)="onReject()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-confirmdialog>

@@ -1,0 +1,30 @@
+.calendar-table {
+  th,
+  td {
+    border: 2px solid #ddd;
+  }
+  th {
+    border-top: 0;
+    &:nth-child(1) {
+      border-left: 0;
+    }
+    &:nth-last-child(n - 1) {
+      border-right: 0;
+    }
+  }
+  tr {
+    &:nth-last-child(n - 1) {
+      td {
+        border-bottom: 0;
+      }
+    }
+  }
+  td {
+    &:nth-child(1) {
+      border-left: 0;
+    }
+    &:nth-last-child(n - 1) {
+      border-right: 0;
+    }
+  }
+}

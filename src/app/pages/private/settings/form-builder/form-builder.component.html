@@ -1,0 +1,448 @@
+<div class="flex flex-column md:flex-row gap-3 h-full overflow-auto">
+  <div class="md:w-3 md:sticky top-0 md:overflow-auto">
+    <h1 class="m-0 mb-3">Form Builder</h1>
+    @for (builder of formBuilder; track $index) {
+    <div
+      [ngClass]="
+        activeFormId === builder._id ? 'bg-primary text-white' : 'bg-light-grey'
+      "
+      class="border-round-lg mb-3 p-3 flex justify-content-between align-items-center cursor-pointer"
+      (click)="onClickForm(builder._id)"
+    >
+      <span>{{ builder.formName }}</span>
+      <img
+        [src]="
+          activeFormId === builder._id
+            ? 'assets/icons/edit.svg'
+            : 'assets/icons/edit-black.svg'
+        "
+        alt="edit"
+      />
+    </div>
+    }
+  </div>
+  <div class="md:w-9">
+    @if (loading) {
+    <span class="flex justify-content-center align-items-center h-full">
+      <p-inputicon styleClass="pi pi-spinner pi-spin" />
+    </span>
+    } @else { @if(formDetails.formType === "company-data") {
+
+    <div class="flex flex-column gap-3 bg-light-grey p-3 border-round-lg">
+      <div class="flex justify-content-between">
+        <div>
+          @if (formNameEditor) {
+          <p-iconfield>
+            <input pInputText [(ngModel)]="formDetails.formName" />
+            @if(formDetails.formName && formDetails.formName.trim()) {
+            <p-inputicon
+              styleClass="pi pi-check-circle text-lg text-green-600 cursor-pointer"
+              (click)="saveFormFields(); formNameEditor = false"
+            />
+            }
+          </p-iconfield>
+          } @else {
+          <h3 class="flex align-items-center gap-2 w-full">
+            {{ formDetails.formName }}
+            <img
+              src="assets/icons/edit-primary.svg"
+              alt="edit"
+              class="cursor-pointer"
+              (click)="formNameEditor = true"
+            />
+          </h3>
+          }
+        </div>
+        <span
+          class="text-base flex align-items-center gap-2 cursor-pointer"
+          (click)="showAddNewDialog = true"
+          >Add New
+          <i class="pi pi-plus-circle text-base"></i>
+        </span>
+      </div>
+      <div class="grid">
+        @for (ff of regularFields; track ff._id; let i = $index) {
+        <div
+          class="col-12 md:col-6 lg:col-4"
+          dndDropzone
+          dndEffectAllowed="move"
+          (dndDrop)="onDrop($event, ff.order)"
+          dndDragoverClass="custom-drag-over"
+          [dndDraggable]="ff"
+          [dndEffectAllowed]="'move'"
+          [dndType]="'regular'"
+          [dndDraggingClass]="'dragging'"
+        >
+          <div class="flex flex-column">
+            <div class="flex gap-2 align-items-center">
+              @if(ff.isEdited) {
+              <input
+                pInputText
+                [(ngModel)]="ff.name"
+                class="border-none bg-transparent w-full p-0 shadow-none"
+              />
+              @if (ff.name && ff.name.trim()) {
+              <i
+                class="pi pi-check-circle text-lg text-green-600 cursor-pointer"
+                (click)="saveFormFields()"
+              >
+              </i>
+              }
+              <i
+                class="pi pi-times-circle text-lg text-primary cursor-pointer"
+                (click)="getFormDetails()"
+              >
+              </i>
+              } @else {
+              <label>{{ ff.name }}</label>
+              <img
+                src="assets/icons/edit-primary.svg"
+                alt="edit"
+                class="cursor-pointer"
+                (click)="ff.isEdited = true"
+              />
+              <i class="pi pi-arrows-alt cursor-pointer" dndHandle></i>
+              <i
+                class="pi text-primary cursor-pointer"
+                [ngClass]="ff.isActive ? 'pi-eye' : 'pi-eye-slash'"
+                (click)="ff.isActive = !ff.isActive; saveFormFields()"
+              ></i>
+              @if(!ff.isRequired) {
+              <i
+                class="pi pi-trash cursor-pointer text-red-600"
+                (click)="onClickDelete(ff._id)"
+              ></i>
+              } }
+            </div>
+            @switch (ff.type) { @case ('date') {
+            <app-custom-calendar [placeholder]="'Select ' + ff.name" />
+            } @case ('select') {
+            <app-custom-dropdown [placeholder]="'Select ' + ff.name" />
+            } @default {
+            <app-custom-input [placeholder]="ff.name" />
+            } }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Parent Fields Section -->
+    @for (pf of parentFields; track pf._id;) {
+    <div class="bg-light-grey p-3 border-round-lg mt-3">
+      <div class="flex justify-content-between">
+        <div>
+          @if (pf.isEdited) {
+          <p-iconfield>
+            <input pInputText [(ngModel)]="pf.name" />
+            @if(pf.name && pf.name.trim()) {
+            <p-inputicon
+              styleClass="pi pi-check-circle text-lg text-green-600 cursor-pointer"
+              (click)="saveFormFields(); pf.isEdited = false"
+            />
+            }
+          </p-iconfield>
+
+          } @else {
+          <h3 class="flex gap-1">
+            {{ pf.name }}
+            <img
+              src="assets/icons/edit-primary.svg"
+              alt="edit"
+              class="cursor-pointer"
+              (click)="pf.isEdited = true"
+            />
+          </h3>
+          }
+        </div>
+        <span
+          class="text-base flex align-items-center gap-2 cursor-pointer"
+          (click)="newFormFieldParentId = pf._id; showAddNewDialog = true"
+          >Add New <i class="pi pi-plus-circle text-base"></i>
+        </span>
+      </div>
+      <div class="grid">
+        @for (child of pf.children; track $index) {
+        <div
+          class="col-12 md:col-6 lg:col-3"
+          dndDropzone
+          dndEffectAllowed="move"
+          (dndDrop)="onDrop($event, child.order, pf._id)"
+          dndDragoverClass="custom-drag-over"
+          [dndDraggable]="child"
+          [dndEffectAllowed]="'move'"
+          [dndType]="'child'"
+          [dndDraggingClass]="'dragging'"
+        >
+          <div class="flex flex-column">
+            <div class="flex gap-2 align-items-center">
+              @if(child.isEdited) {
+              <input
+                pInputText
+                [(ngModel)]="child.name"
+                class="border-none bg-transparent w-full p-0 shadow-none"
+              />
+              @if (child.name && child.name.trim()) {
+              <i
+                class="pi pi-check-circle text-lg text-green-600 cursor-pointer"
+                (click)="saveFormFields()"
+              >
+              </i>
+              }
+              <i
+                class="pi pi-times-circle text-lg text-primary cursor-pointer"
+                (click)="getFormDetails()"
+              >
+              </i>
+              } @else {
+              <label>{{ child.name }}</label>
+              <img
+                src="assets/icons/edit-primary.svg"
+                alt="edit"
+                class="cursor-pointer"
+                (click)="child.isEdited = true"
+              />
+              <i class="pi pi-arrows-alt cursor-pointer" dndHandle></i>
+              <i
+                class="pi text-primary cursor-pointer"
+                [ngClass]="child.isActive ? 'pi-eye' : 'pi-eye-slash'"
+                (click)="child.isActive = !child.isActive; saveFormFields()"
+              ></i>
+              @if (!child.isDefault) {
+              <i
+                class="pi pi-trash cursor-pointer text-red-600"
+                (click)="onClickDelete(pf._id, child._id)"
+              ></i>
+              } }
+            </div>
+            @switch (child.type) { @case ('date') {
+            <app-custom-calendar [placeholder]="'Select ' + child.name" />
+            } @case ('select') {
+            <app-custom-dropdown [placeholder]="'Select ' + child.name" />
+            } @default {
+            <div class="flex flex-column">
+              <app-custom-input [placeholder]="child.name" />
+            </div>
+            } }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    } } @else {
+    <div
+      class="flex flex-column gap-3 bg-light-grey p-3 border-round-lg w-full h-full"
+    >
+      @if (formNameEditor) {
+      <div class="flex">
+        <p-iconfield>
+          <input pInputText [(ngModel)]="formDetails.formName" />
+          @if(formDetails.formName && formDetails.formName.trim()) {
+          <p-inputicon
+            styleClass="pi pi-check-circle text-lg text-green-600 cursor-pointer"
+            (click)="saveFormFields(); formNameEditor = false"
+          />
+          }
+        </p-iconfield>
+      </div>
+      } @else {
+      <h3 class="flex align-items-center gap-2 w-full">
+        {{ formDetails.formName }}
+        <img
+          src="assets/icons/edit-primary.svg"
+          alt="edit"
+          class="cursor-pointer"
+          (click)="formNameEditor = true"
+        />
+      </h3>
+      }
+
+      <div class="flex w-full overflow-x-auto">
+        @for (ff of formDetails.fields; track $index; let i = $index) {
+        <div
+          class="flex h-5rem bg-light-purple border-right-2 border-white justify-content-between align-items-start p-3 overflow-hidden"
+          [ngClass]="{
+            'border-round-left-lg': i === 0,
+            'border-round-right-lg': i === formDetails.fields.length - 1
+          }"
+          dndDropzone
+          dndEffectAllowed="move"
+          (dndDrop)="onDrop($event, ff.order)"
+          dndDragoverClass="custom-drag-over"
+          [dndDraggable]="ff"
+          [dndEffectAllowed]="'move'"
+          [dndType]="'regular'"
+          [dndDraggingClass]="'dragging'"
+          style="min-width: 150px"
+        >
+          <div class="flex gap-2 align-items-center">
+            @if(ff.isEdited) {
+            <input
+              pInputText
+              [(ngModel)]="ff.name"
+              class="border-none bg-transparent w-full p-0 shadow-none"
+            />
+            <i
+              class="pi pi-check-circle text-lg text-green-600 cursor-pointer"
+              (click)="saveFormFields()"
+            >
+            </i>
+            <i
+              class="pi pi-times-circle text-lg text-primary cursor-pointer"
+              (click)="getFormDetails()"
+            >
+            </i>
+            } @else {
+            <label>{{ ff.name }}</label>
+            <img
+              src="assets/icons/edit-primary.svg"
+              alt="edit"
+              class="cursor-pointer"
+              (click)="ff.isEdited = true"
+            />
+            <i class="pi pi-arrows-alt cursor-pointer" dndHandle></i>
+            }
+          </div>
+        </div>
+        }
+      </div>
+      <div class="flex flex-column bg-white p-4 border-round-2xl md:w-20rem">
+        <span
+          class="font-semibold cursor-pointer"
+          (click)="showAddDocTypesModal = true"
+        >
+          + Add Doc Types
+        </span>
+        @for (field of formDetails.fields; track $index) { @if(field.field ===
+        'docType') {
+        <div class="mt-2">
+          <ul class="list-none p-0 m-0">
+            @for (item of field.options; track $index) {
+            <li
+              class="flex justify-content-between align-items-center py-2 border-bottom-1 border-300"
+            >
+              <span>{{ item }}</span>
+              <div class="flex gap-2">
+                <i
+                  class="pi pi-pencil text-primary cursor-pointer"
+                  (click)="editDocTypeOption(field, $index, item)"
+                ></i>
+                <i
+                  class="pi pi-trash text-red-600 cursor-pointer"
+                  (click)="deleteDocTypeOption(field, $index)"
+                ></i>
+              </div>
+            </li>
+            }
+          </ul>
+        </div>
+        } }
+      </div>
+    </div>
+    } }
+  </div>
+</div>
+<!-- Add New Dialog -->
+<p-dialog
+  styleClass="border-none border-round-lg overflow-hidden"
+  [(visible)]="showAddNewDialog"
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [style]="{ width: '25rem' }"
+  [modal]="true"
+>
+  <ng-template #headless>
+    <div class="flex p-3 bg-primary">
+      <span class="text-white text-lg flex gap-2 align-items-center">
+        <i class="pi pi-plus-circle text-base"></i>Add New</span
+      >
+    </div>
+    <div class="p-3">
+      <form [formGroup]="newFieldForm">
+        <app-custom-input
+          label="Field Title"
+          formControlName="name"
+          [error]="(controls['name'].errors?.['required'] &&
+                  (controls['name'].touched || controls['name'].dirty)) || (controls['name'].errors?.['emptySpace'] && 
+                  (controls['name'].touched || controls['name'].dirty)) ? errorMessages('Field name') : null"
+        />
+        <label>Field Type</label>
+        <div class="mt-2">
+          @for (type of fieldTypes; track $index) {
+          <div class="field-checkbox">
+            <p-radiobutton
+              [inputId]="type.value"
+              [value]="type.value"
+              formControlName="type"
+            />
+            <label [for]="type.value" class="ml-2">{{ type.label }}</label>
+          </div>
+          } @if (controls['type'].errors?.['required'] &&
+          (controls['type'].touched || controls['type'].dirty)) {
+          <small class="text-red-600">{{ errorMessages("Field type") }}</small>
+          }
+        </div>
+      </form>
+      <div class="flex justify-content-end gap-2">
+        <app-custom-button
+          label="Add"
+          styleClass="px-5 border-none"
+          size="small"
+          (onClick)="onAddNewField()"
+        />
+        <app-custom-button
+          label="Cancel"
+          variant="outlined"
+          styleClass="px-4 bg-dark-gray text-white border-none"
+          size="small"
+          (onClick)="hideAddNewFieldDialog()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Add New Doc Types -->
+<p-dialog
+  styleClass="border-none border-round-lg overflow-hidden"
+  [(visible)]="showAddDocTypesModal"
+  [breakpoints]="{ '575px': '90vw' }"
+  [style]="{ width: '25rem' }"
+  [modal]="true"
+>
+  <ng-template #headless>
+    <div class="flex p-3 bg-primary">
+      <span class="text-white text-lg flex gap-2 align-items-center">
+        <i class="pi pi-plus-circle text-base"></i>Add Doc Types</span
+      >
+    </div>
+    <div class="p-3">
+      <app-custom-input
+        label="Doc Types"
+        extraClass="mb-0"
+        [(ngModel)]="docTypeOptions"
+        (ngModelChange)="onEnterDocTypes()"
+      />
+      <small>Separate multiple options with comma.</small>
+
+      @if (docTypesValidationMsg) {
+      <br />
+      <small class="text-red-600">{{ docTypesValidationMsg }}</small>
+      }
+      <div class="flex justify-content-end gap-2 mt-3">
+        <app-custom-button
+          label="Save"
+          styleClass="px-5 border-none"
+          size="small"
+          (onClick)="onAddDocTypeOptions()"
+        />
+        <app-custom-button
+          label="Cancel"
+          variant="outlined"
+          styleClass="px-4 bg-dark-gray text-white border-none"
+          size="small"
+          (onClick)="hideDocTypesDialog()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

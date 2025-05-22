@@ -1,0 +1,362 @@
+<div class="flex justify-content-between align-items-center">
+  <h2 class="flex gap-2">
+    @if (isAdmin) { @if (analytics) { Hi, {{ analytics?.companyName }}
+    } @else {
+    <span>
+      <p-skeleton width="10rem" height="2rem" />
+    </span>
+    } } @else { Hi, {{ user()?.fullName }}
+    }
+  </h2>
+  <app-companies-redirection />
+</div>
+@if (isAdmin) {
+<div class="grid mb-2">
+  @for (card of statsCards; track $index) {
+  <div class="col-12 md:col-3">
+    <div
+      class="card p-4 flex align-items-start gap-3 border-round-lg h-full shadow-sm"
+      [ngClass]="card.bgColor"
+    >
+      <div
+        class="icon-container flex items-center justify-center border-round p-2 bg-white"
+        [ngClass]="card.iconColor"
+      >
+        <img [src]="card.icon" alt="" />
+        <!-- <i class="pi" [ngClass]="card.icon"></i> -->
+      </div>
+      <div class="">
+        <span class="font-medium subheading">{{ card.label }}</span>
+        <h3 class="font-bold heading text-4xl m-0">
+          {{ analytics?.[card.key] ?? analytics?.users?.[card.key] }}
+        </h3>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+<div class="grid mb-2">
+  <div class="col-12 md:col-4">
+    <div class="chart-card bg-gray-100 h-full px-4 py-1 border-round-lg">
+      <h3>Total Number of Users</h3>
+      <p-chart
+        type="doughnut"
+        [data]="doughnutChartData"
+        [options]="doughnutChartOptions"
+        class="chart"
+      ></p-chart>
+    </div>
+  </div>
+  <div class="col-12 md:col-4">
+    <div class="chart-card bg-gray-100 h-full px-4 py-1 border-round-lg">
+      <h3>Company Management</h3>
+      <div class="h-20rem bar-chart-scroll">
+        <p-chart
+          type="bar"
+          [data]="lineChartData"
+          [options]="lineChartOptions"
+          height="100%"
+          [responsive]="true"
+          class="chart"
+        ></p-chart>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 md:col-4">
+    <div
+      class="chart-card bg-light-blue border-round-lg h-26rem overflow-y-auto"
+    >
+      <div
+        class="flex justify-content-between px-4 align-items-center sticky bg-gray-100 z-1 top-0"
+      >
+        <h3>Reminders</h3>
+        @if (reminders.length) {
+        <span
+          class="text-primary underline text-sm font-semibold cursor-pointer"
+          [routerLink]="['/notifications']"
+          >View All</span
+        >
+        }
+      </div>
+      @if (reminders.length) {
+      <ul class="list-none p-0">
+        @for (reminder of reminders; track $index) {
+        <li
+          class="text-primary text-sm border-bottom-2 border-gray-200 px-4 py-2 relative cursor-pointer mb-3"
+          (click)="markAsRead('reminders', reminder._id)"
+        >
+          {{ reminder.message }}
+          @if (!reminder.isRead) {
+          <div
+            class="absolute unread h-1rem w-1rem bg-primary right-0 top-0"
+          ></div>
+          }
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="flex flex-column justify-content-center align-items-center">
+        <img src="/assets/icons/no-data.png" alt="" class="w-4 mt-8" />
+        <p class="no-data">No Data Available</p>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="col-12 md:col-8">
+    <div class="chart-card py-1 overflow-y-auto border-round-lg">
+      <h3>Documents</h3>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <app-custom-button
+          styleClass="text-sm lg:text-base"
+          label="All"
+          [variant]="currentSelectedTab ? 'outlined' : undefined"
+          (onClick)="onClickTab()"
+        />
+        @for (tab of tabHeaders; track $index) {
+        <app-custom-button
+          styleClass="text-sm lg:text-base"
+          [label]="tab.formName"
+          [variant]="
+            currentSelectedTab && currentSelectedTab._id === tab._id
+              ? undefined
+              : 'outlined'
+          "
+          (onClick)="onClickTab(tab)"
+        />
+        }
+      </div>
+      @if (!currentSelectedTab) {
+      <div class="flex justify-content-between mb-3">
+        <div class="flex flex-wrap align-items-center gap-2">
+          @for (tab of tabHeaders; track $index) {
+          <div class="flex gap-2 align-items-center">
+            <span
+              class="border-round-sm"
+              [ngStyle]="{
+                'background-color': tab.color,
+                height: '12px',
+                width: '20px'
+              }"
+            ></span>
+            <span class="text-sm text-700">{{ tab.formName }}</span>
+          </div>
+          }
+        </div>
+        <app-custom-dropdown
+          size="small"
+          label=""
+          placeholder="Status"
+          [options]="statusOptions"
+          (valueChange)="onFilterByStatus($event)"
+          [showClear]="true"
+        ></app-custom-dropdown>
+      </div>
+      } @if(loading) {
+      <p-skeleton width="100%" height="20rem" />
+      } @else { @if (allDocs.length) {
+      <app-dashboard-calendar
+        [events]="allDocs"
+        [eventColors]="eventColors"
+      ></app-dashboard-calendar>
+      } @else {
+      <div class="flex flex-column justify-content-center align-items-center">
+        <img src="/assets/icons/no-data.png" alt="" class="w-2" />
+        <p class="no-data">No Data Available</p>
+      </div>
+      } }
+    </div>
+  </div>
+
+  <div class="col-12 md:col-4">
+    <div
+      class="chart-card bg-light-blue border-round-lg overflow-y-auto"
+    >
+      <div
+        class="flex justify-content-between px-4 align-items-center sticky bg-gray-100 z-1 top-0"
+      >
+        <h3>Activity Logs</h3>
+        @if (activityLogs.length) {
+        <span
+          class="text-primary underline text-sm font-semibold cursor-pointer"
+          [routerLink]="['/notifications']"
+          >View All</span
+        >
+        }
+      </div>
+      @if (activityLogs.length) {
+      <ul class="list-none p-0">
+        @for (activity of activityLogs; track $index) {
+        <li
+          class="text-primary text-sm border-bottom-2 border-gray-200 px-4 py-2 relative cursor-pointer mb-3"
+          (click)="markAsRead('activities', activity._id)"
+        >
+          {{ activity.details }}
+          <p class="heading my-2">
+            {{ activity.createdAt | date : "dd-MM-YYYY hh:mm" }}
+          </p>
+          @if (!activity.isRead) {
+          <div
+            class="absolute unread h-1rem w-1rem bg-primary right-0 top-0"
+          ></div>
+          }
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="flex flex-column justify-content-center align-items-center">
+        <img src="/assets/icons/no-data.png" alt="" class="w-4 mt-8" />
+        <p class="no-data">No Data Available</p>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+} @else {
+<div class="grid mb-2 w-full">
+  <div class="col-12">
+    <div class="chart-card py-1 border-round-lg">
+      <h3>Documents</h3>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <app-custom-button
+          styleClass="text-sm lg:text-base"
+          label="All"
+          [variant]="currentSelectedTab ? 'outlined' : undefined"
+          (onClick)="onClickTab()"
+        />
+        @for (tab of tabHeaders; track $index) {
+        <app-custom-button
+          styleClass="text-sm lg:text-base"
+          [label]="tab.formName"
+          [variant]="
+            currentSelectedTab && currentSelectedTab._id === tab._id
+              ? undefined
+              : 'outlined'
+          "
+          (onClick)="onClickTab(tab)"
+        />
+        }
+      </div>
+      @if (!currentSelectedTab) {
+      <div class="flex justify-content-between mb-3">
+        <div class="flex flex-wrap align-items-center gap-2">
+          @for (tab of tabHeaders; track $index) {
+          <div class="flex gap-2 align-items-center">
+            <span
+              class="border-round-sm"
+              [ngStyle]="{
+                'background-color': tab.color,
+                height: '12px',
+                width: '20px'
+              }"
+            ></span>
+            <span class="text-sm text-700">{{ tab.formName }}</span>
+          </div>
+          }
+        </div>
+        <app-custom-dropdown
+          size="small"
+          label=""
+          placeholder="Status"
+          [options]="statusOptions"
+          (valueChange)="onFilterByStatus($event)"
+          [showClear]="true"
+        ></app-custom-dropdown>
+      </div>
+      }
+    </div>
+    @if(loading) {
+    <p-skeleton width="100%" height="20rem" />
+    } @else {
+    <app-dashboard-calendar
+      class="w-full"
+      [events]="allDocs"
+      [eventColors]="eventColors"
+    ></app-dashboard-calendar>
+    }
+  </div>
+  <div class="col-12 md:col-6">
+    <div class="bg-light-blue border-round-lg h-30rem overflow-y-auto">
+      <div
+        class="flex justify-content-between px-4 align-items-center sticky bg-gray-100 z-1 top-0"
+      >
+        <h3>Reminders</h3>
+        @if (reminders.length) {
+        <span
+          class="text-primary underline text-sm font-semibold cursor-pointer"
+          [routerLink]="['/notifications']"
+          >View All</span
+        >
+        }
+      </div>
+      @if (reminders.length) {
+      <ul class="list-none p-0">
+        @for (reminder of reminders; track $index) {
+        <li
+          class="text-primary text-sm border-bottom-2 border-gray-200 px-4 py-2 relative cursor-pointer mb-3"
+          (click)="markAsRead('reminders', reminder._id)"
+        >
+          {{ reminder.message }}
+          @if (!reminder.isRead) {
+          <div
+            class="absolute unread h-1rem w-1rem bg-primary right-0 top-0"
+          ></div>
+          }
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="flex flex-column justify-content-center align-items-center">
+        <img src="/assets/icons/no-data.png" alt="" class="w-4 mt-8" />
+        <p class="no-data">No Data Available</p>
+      </div>
+      }
+    </div>
+  </div>
+  <div class="col-12 md:col-6">
+    <div
+      class="chart-card bg-light-blue border-round-lg h-30rem overflow-y-auto"
+    >
+      <div
+        class="flex justify-content-between px-4 align-items-center sticky bg-gray-100 z-1 top-0"
+      >
+        <h3>Activity Logs</h3>
+        @if (activityLogs.length) {
+        <span
+          class="text-primary underline text-sm font-semibold cursor-pointer"
+          [routerLink]="['/notifications']"
+          >View All</span
+        >
+        }
+      </div>
+      @if (activityLogs.length) {
+      <ul class="list-none p-0">
+        @for (activity of activityLogs; track $index) {
+        <li
+          class="text-primary text-sm border-bottom-2 border-gray-200 px-4 py-2 relative cursor-pointer mb-3"
+          (click)="markAsRead('activities', activity._id)"
+        >
+          {{ activity.details }}
+          <p class="heading my-2">
+            {{ activity.createdAt | date : "dd-MM-YYYY hh:mm" }}
+          </p>
+          @if (!activity.isRead) {
+          <div
+            class="absolute unread h-1rem w-1rem bg-primary right-0 top-0"
+          ></div>
+          }
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="flex flex-column justify-content-center align-items-center">
+        <img src="/assets/icons/no-data.png" alt="" class="w-4 mt-8" />
+        <p class="no-data">No Data Available</p>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+}

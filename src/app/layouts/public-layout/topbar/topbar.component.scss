@@ -1,0 +1,22 @@
+.active {
+  color: var(--primary-color);
+}
+// responsive design
+@media screen and (max-width:991px){
+  .mobile-menu{
+    position: absolute;
+    transform: translateX(-100%) !important;
+    transition: all .5s ease-in-out;
+    left: 0;
+    width: 80vw;
+    height: 100vh;
+    box-shadow: 0px 0px 8px grey;
+    top: 0;
+    padding: 20px;
+    background: #fff;
+    &.mobile-show{
+      transform: translateX(0%) !important;
+    }
+  }
+  
+}

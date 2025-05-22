@@ -1,0 +1,89 @@
+.avatar-profile {
+  cursor: pointer;
+
+  .overlay-btn {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    width: 48px;
+    height: 48px;
+    display: none;
+    top: 0;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+
+    i {
+      color: #fff;
+    }
+  }
+
+  &:hover {
+    .overlay-btn {
+      display: flex;
+    }
+  }
+}
+
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  position: relative;
+  background-color: #f8f9fa;
+  transition: width 0.3s ease-in-out;
+  .toggle-btn {
+    position: absolute;
+    top: 68px;
+    right: -15px;
+    background: #0c0c0c;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    i {
+      color: #fff;
+      font-size: 14px;
+    }
+  }
+
+  // .logo {
+  //     text-align: center;
+  //     margin-bottom: 20px;
+  // }
+
+  .label-hidden {
+    display: none;
+  }
+
+  .label-visiblity {
+    visibility: hidden;
+  }
+  
+  .text-md {
+    opacity: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+  
+  .label-hidden {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+  }
+}
+
+.sidebar.collapsed {
+  width: 85px;
+  transition: width 0.3s ease-in-out;
+  
+  .text-md {
+    opacity: 0;
+    width: 0;
+  }
+  
+  .menu li a {
+    justify-content: center;
+  }
+}
